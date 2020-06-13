@@ -1,0 +1,271 @@
+```{r}
+library(astsa)
+library(tseries)
+library(xts)
+library(zoo)
+library(rugarch)
+library(quantmod)
+library(timeSeries)
+library(forecast)
+library(xts)
+```
+
+```{r}
+#daily data working on cadilahc 1 year
+
+df_2<-read.csv("C:/Users/SUMANTH/Downloads/fram_assignment/1_year_data/cadilahc.csv")
+df_2<-transform(df_2,returns=round((100*log(Close/Prev.Close)),4))
+k<-auto.arima(df_2$returns)
+acf2(df_2$returns)
+adjusted<-df_2$returns-residuals(k)
+ts.plot(df_2$returns)
+summary(df_2$returns)
+points(adjusted,type="l",col=2)
+checkresiduals(k)
+summary(k)
+daily_forecast_2<-forecast(k,10)
+daily_forecast_df_2<-data.frame(daily_forecast_2)
+autoplot(daily_forecast_2)
+daily_forecast_2
+
+xts_rfd<-xts(df$change_percent,order.by=as.Date(df_2$Date),na.locf=TRUE)
+multi_v<-cbind(df_2$returns,df_2$Volume,df$change_percent)
+multi_v
+plot.ts(multi_v , main = "", xlab = "")
+fitvar1= VAR(multi_v, p=1, type="const", ic="AIC")
+summary(fitvar1)
+acf(residuals(fitvar1))
+
+
+f_m<-read.csv("C:/Users/SUMANTH/Downloads/gamma.csv")
+L<-df_m$change_percent
+length(L)
+df_wr<-data.frame(split_months_returns,xts_monthly_df$xts_monthly_vol[1:60],L[1:60])
+plot.ts(df_wr , main = "", xlab = "")
+fitvar2= VAR(df_wr, p=1, type="const", ic="AIC")
+summary(fitvar2)
+acf(residuals(fitvar2))
+
+xts_weekly<-to.weekly(xts_1_5Y,OHLC=FALSE)
+xts_weekly_vol<-to.weekly(xts(df$Volume,order.by=as.Date(df$Date)),OHLC=FALSE)
+xts_weekly_df<-data.frame(xts_weekly_vol)
+lapply(xts_weekly_df,cumsum)
+xts_weekly_df
+colnames(xts_weekly_df[1])<-"Date"
+split_weeks_vol<-split(xts_1_5Y,"weeks")
+split_weeks_vol
+df_w<-read.csv("C:/Users/SUMANTH/Downloads/betaa.csv")
+K<-df_w$change_percent
+length(K)
+
+
+ts_monthly<-to.monthly(xts_2_5Y,OHLC=FALSE)
+xts_monthly_vol<-to.monthly(xts(df_2_5Y$Volume,order.by=as.Date(df_2_5Y$Date)),OHLC=FALSE)
+xts_monthly_df<-data.frame(xts_monthly_vol)
+lapply(xts_monthly_df,cumsum)
+xts_monthly_df
+L<-df_m$change_percent
+length(L)
+df_wr<-data.frame(split_months_returns_2,xts_monthly_df$xts_monthly_vol[1:60],L[1:60])
+plot.ts(df_wr , main = "", xlab = "")
+fitvar2= VAR(df_wr, p=1, type="const", ic="AIC")
+summary(fitvar2)
+acf(residuals(fitvar2))
+```
+
+```{r}
+#monthly data working on cadilahc 5 years
+
+df_2_5Y<-read.csv("C:/Users/SUMANTH/Downloads/fram_assignment/cadilahc_5_years.csv")
+xts_2_5Y<-xts(df_2_5Y$Close,order.by=as.Date(df_2_5Y$Date),na.locf=TRUE)
+split_months_end_index<-endpoints(xts_2_5Y,"months")
+split_months<-xts_2_5Y[xts:::startof(xts_2_5Y,"months")]
+split_months_end<-xts_2_5Y[split_months_end_index,1]
+names(split_months)<-"Close"
+names(split_months_end)<-"Close_end"
+split_months_df_2<-data.frame(split_months)
+split_months_end_df_2<-data.frame(split_months_end)
+split_months_returns_2<-c()
+for(i in 1:length(coredata(split_months)-1)){
+  split_months_returns_2<-c(split_months_returns_2,round((100*log(split_months_end_df_2$Close_end[i]/split_months_df_2$Close[i])),4))
+}
+split_months_returns_2[7]<-mean(split_months_returns_2)
+model_monthly<-auto.arima(split_months_returns_2)
+model_adjusted_monthly<-split_months_returns_2-residuals(model_monthly)
+forecast(model_monthly,10)
+autoplot(forecast(model_monthly,10))
+points(model_monthly,type="lty",col=2)
+checkresiduals(model_monthly)
+
+garch1.spec_m2<-ugarchspec(variance.model = list(garchOrder=c(1,1)), mean.model = list(armaOrder=c(0,0)))
+monthly.garch1fit2<-ugarchfit(spec=garch1.spec_m2, data=split_months_returns_2)
+garchforecast_m2<-ugarchboot(monthly.garch1fit2, n.ahead=10,method = c("Partial","Full")[1])
+plot(garchforecast_m2,which=2)
+gf_m2<-ugarchforecast(monthly.garch1fit2,n.ahead=10)
+gf_m2
+sigma(gf_m2)
+residuals(monthly.garch1fit2)
+garch1.spec_m2
+monthly.garch1fit2
+acf2(residuals(monthly.garch1fit2),max.lag = 10)
+
+arch1.spec_m2<-ugarchspec(variance.model = list(garchOrder=c(1,0)), mean.model = list(armaOrder=c(0,0)))
+monthly.arch1fit2<-ugarchfit(spec=arch1.spec_m2, data=split_months_returns_2)
+arch1forecast_m2<-ugarchboot(monthly.arch1fit2, n.ahead=10,method = c("Partial","Full")[1])
+plot(arch1forecast_m2,which=2)
+a1f_m2<-ugarchforecast(monthly.arch1fit2,n.ahead=10)
+a1f_m2
+acf2(split_months_returns_2)
+sigma(a1f_m2)
+residuals(monthly.arch1fit2)
+arch1.spec_m2
+monthly.arch1fit2
+acf2(residuals(monthly.arch1fit2),max.lag = 10)
+
+arch2.spec_m2<-ugarchspec(variance.model = list(garchOrder=c(2,0)), mean.model = list(armaOrder=c(0,0)))
+monthly.arch2fit2<-ugarchfit(spec=arch2.spec_m2, data=split_months_returns_2)
+arch2forecast_m2<-ugarchboot(monthly.arch2fit2, n.ahead=10,method = c("Partial","Full")[1])
+plot(arch2forecast_m2,which=2)
+a2f_m2<-ugarchforecast(monthly.arch2fit2,n.ahead=10)
+a2f_m2
+sigma(a2f_m2)
+arch2.spec_m2
+monthly.arch2fit2
+```
+
+```{r}
+sigma(monthly.arch2fit2)
+residuals(monthly.arch2fit2)
+monthly.arch2fit2
+acf2(residuals(monthly.arch2fit2),max.lag = 10)
+```
+
+```{r}
+#weekly data working on cadilahc 5 years
+
+xts_weekly_2<-to.weekly(xts_2_5Y,OHLC=FALSE)
+xts_weekly_df_2<-data.frame(xts_weekly_2)
+split_weeks_returns_2<-c()
+for(i in 1:length(coredata(xts_weekly_2))-1){
+  split_weeks_returns_2<-c(split_weeks_returns_2,round((100*log(xts_weekly_df_2[i+1,1]/xts_weekly_df_2[i,1])),4))
+}
+split_weeks_returns_2[27]
+split_weeks_returns_2[27]<--0.09851264
+split_weeks_returns_df_2<-data.frame(split_weeks_returns_2)
+split_weeks_returns_df_2[27,1]<--0.09851264
+new_weekly_model<-auto.arima(split_weeks_returns_2)
+summary(new_weekly_model)
+new_weekly_model_adj<-split_weeks_returns_2-residuals(new_weekly_model)
+summary(split_weeks_returns_2)
+ts.plot(split_weeks_returns_2)
+points(x_2,type="lty",col=2)
+acf2(split_weeks_returns_2)
+new_weekly_model
+checkresiduals(new_weekly_model)
+x_2<-forecast(new_weekly_model,10)
+x_2
+x_2_df<-data.frame(x_2)
+autoplot(x_2)
+```
+```{r}
+garch1.spec_2<-ugarchspec(variance.model = list(garchOrder=c(1,1)), mean.model = list(armaOrder=c(1,2)))
+daily.garch1fit_2<-ugarchfit(spec=garch1.spec_2, data=df_2$returns)
+garchforecast_2<-ugarchboot(daily.garch1fit_2, n.ahead=10,method = c("Partial","Full")[1])
+plot(garchforecast_2,which=2)
+gfd_2<-ugarchforecast(daily.garch1fit_2,n.ahead=10)
+sigma(gfd_2)
+garch1.spec_2
+daily.garch1fit_2
+daily.garch1fit_2
+
+acf2(residuals(daily.garch1fit_2),max.lag = 10)
+
+
+xts_weekly<-to.weekly(xts_2_5Y,OHLC=FALSE)
+xts_weekly_vol<-to.weekly(xts(df_2_5Y$Volume,order.by=as.Date(df_2_5Y$Date)),OHLC=FALSE)
+xts_weekly_df<-data.frame(xts_weekly_vol)
+lapply(xts_weekly_df,cumsum)
+
+K<-df_w$change_percent
+length(K)
+df_wr<-data.frame(split_weeks_returns_2,xts_weekly_df$xts_weekly_vol[2:262],K[1:261])
+fitvar2= VAR(df_wr, p=1, type="const", ic="AIC")
+plot.ts(df_wr , main = "", xlab = "")
+summary(fitvar2)
+acf(residuals(fitvar2))
+
+```
+
+```{r}
+arch1.spec_2<-ugarchspec(variance.model = list(garchOrder=c(1,0)), mean.model = list(armaOrder=c(1,2)))
+daily.arch1fit_2<-ugarchfit(spec=arch1.spec_2, data=df_2$returns)
+arch1forecast_2<-ugarchboot(daily.arch1fit_2, n.ahead=10,method = c("Partial","Full")[1])
+plot(arch1forecast_2,which=2)
+a1fd_2<-ugarchforecast(daily.arch1fit_2,n.ahead=10)
+sigma(a1fd_2)
+a1fd_2
+arch1.spec_2
+daily.arch1fit_2
+acf2(residuals(daily.arch1fit_2),max.lag = 10)
+```
+
+```{r}
+arch2.spec_2<-ugarchspec(variance.model = list(garchOrder=c(2,0)), mean.model = list(armaOrder=c(1,2)))
+daily.arch2fit_2<-ugarchfit(spec=arch2.spec_2, data=df_2$returns)
+arch2forecast_2<-ugarchboot(daily.arch2fit_2, n.ahead=10,method = c("Partial","Full")[1])
+plot(arch2forecast_2,which=2)
+a2fd_2<-ugarchforecast(daily.arch2fit_2,n.ahead=10)
+sigma(a2fd_2)
+arch2.spec_2
+daily.arch2fit_2
+acf2(residuals(daily.arch2fit_2),max.lag = 10)
+```
+
+```{r}
+garch1.spec_w2<-ugarchspec(variance.model = list(garchOrder=c(1,1)), mean.model = list(armaOrder=c(1,1)))
+weekly2.garch1fit<-ugarchfit(spec=garch1.spec_w2, data=split_weeks_returns_2)
+sigma(weekly2.garch1fit)
+residuals(weekly2.garch1fit)
+garchforecast2<-ugarchboot(weekly2.garch1fit, n.ahead=10,method = c("Partial","Full")[1])
+plot(garchforecast2,which=2)
+gfd_2w<-ugarchforecast(weekly2.garch1fit,n.ahead=10)
+sigma(gfd_2w)
+weekly2.garch1fit
+garch1.spec_w2
+weekly2.garch1fit
+acf2(residuals(weekly2.garch1fit),max.lag = 10)
+```
+
+```{r}
+arch1.spec_w2<-ugarchspec(variance.model = list(garchOrder=c(1,0)), mean.model = list(armaOrder=c(1,1)))
+weekly2.arch1fit<-ugarchfit(spec=arch1.spec_w2, data=split_weeks_returns_2)
+arch1forecast_w2<-ugarchboot(weekly2.arch1fit, n.ahead=10,method = c("Partial","Full")[1])
+plot(arch1forecast_w2,which=2)
+a1fd_2w<-ugarchforecast(weekly2.arch1fit,n.ahead=10)
+sigma(a1fd_2w)
+arch1.spec_w2
+weekly2.arch1fit
+acf2(residuals(weekly2.arch1fit),max.lag = 10)
+```
+
+```{r}
+arch2.spec_w2<-ugarchspec(variance.model = list(garchOrder=c(2,0)), mean.model = list(armaOrder=c(1,1)))
+weekly2.arch2fit<-ugarchfit(spec=arch2.spec_w2, data=split_weeks_returns_2)
+arch2forecast_w2<-ugarchboot(weekly2.arch2fit, n.ahead=10,method = c("Partial","Full")[1])
+plot(arch2forecast_w2,which=2)
+a2fd_2w<-ugarchforecast(weekly2.arch2fit,n.ahead=10)
+sigma(a2fd_2w)
+weekly2.arch2fit
+weekly2.arch2fit
+acf2(residuals(weekly2.arch2fit),max.lag = 10)
+```
+```{r}
+plot(ARMAtoAR(ar= -0.7943 ,ma= c(0.7224,-0.1751),lag.max=20))
+plot(ARMAtoMA(ar=-0.7943,ma=c(0.7224,-0.1751),lag.max=20))
+plot(ARMAtoAR(ar=-0.8739  ,ma=0.7854,lag.max=20))
+plot(ARMAtoMA(ar=-0.8739  ,ma=-0.7854,lag.max=20))
+```
+
+
+
+
