@@ -13,9 +13,9 @@ Thanks to All my team members, who were part of some of these projects, and help
 thank you for reading till the last line.
 
 note:
-DRM == dervatives and risk management
-FM == financial management
-SAPM == security analysis and portfolio valuation
-FRAM == financial risk analytics and management
-BAV == business analysis and valuation
-datacamp guided projects are some entry level fin. analytics based jupyter notebook projects
+*DRM == dervatives and risk management
+*FM == financial management
+*SAPM == security analysis and portfolio valuation
+*FRAM == financial risk analytics and management
+*BAV == business analysis and valuation
+*datacamp guided projects are some entry level fin. analytics based jupyter notebook projects
