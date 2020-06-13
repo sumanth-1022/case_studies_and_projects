@@ -1,6 +1,6 @@
 hello!
 
-I'm an undergrad student at BITS hyderabad.As a part of my minor in finance, I have taken up few courses, and have done some cool assignments as a part of the same. I have shared all the files, code snippets etc used so that they can be used as a template for your projects in finance domain. I felt that this is just a tiny bit of support to all the finance, fintech, enthusiasts in this community.
+I'm an undergrad student at BITS hyderabad.As a part of my minor in finance, I have taken up few courses, and have done some cool assignments as a part of the coursework. I have shared all the files, code snippets etc used so that they can be used as a template for your projects in finance domain. I felt that this is just a tiny bit of support to all the finance, fintech, enthusiasts in this community.
 
 Please feel free to clone download/fork and use them for your purposes. Let me know if there are any discrepancies in the tools or methods used. Everyone learns after making mistakes.
 
